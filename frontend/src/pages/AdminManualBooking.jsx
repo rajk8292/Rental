@@ -11,6 +11,7 @@ const AdminManualBooking = () => {
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(new Date());
     const [paymentStatus, setPaymentStatus] = useState('Pending');
+    const [searching, setSearching] = useState(false);
     const [loading, setLoading] = useState(false);
     
     // Receipt State
@@ -26,6 +27,26 @@ const AdminManualBooking = () => {
         };
         fetchUtensils();
     }, []);
+
+    // Customer Auto-fill Logic
+    useEffect(() => {
+        const searchCustomer = async () => {
+            if (customer.mobile.length === 10) {
+                try {
+                    setSearching(true);
+                    const { data } = await axios.get(`/auth/mobile/${customer.mobile}`);
+                    if (data) {
+                        setCustomer(prev => ({ ...prev, name: data.name }));
+                    }
+                } catch (err) {
+                    console.log('New customer');
+                } finally {
+                    setSearching(false);
+                }
+            }
+        };
+        searchCustomer();
+    }, [customer.mobile]);
 
     const addItem = (uId) => {
         const utensil = utensils.find(u => u._id === uId);
@@ -109,13 +130,24 @@ const AdminManualBooking = () => {
                              कस्टमर और स्थान की जानकारी (Customer & Location)
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="relative">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Mobile No (मोबाइल)</label>
+                                <div className="relative">
+                                    <input 
+                                        required 
+                                        type="text" 
+                                        maxLength="10"
+                                        className={`w-full p-4 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold ${searching ? 'animate-pulse' : ''}`} 
+                                        value={customer.mobile} 
+                                        onChange={e => setCustomer({...customer, mobile: e.target.value.replace(/\D/g, '')})} 
+                                        placeholder="9876543210" 
+                                    />
+                                    {searching && <div className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-500 text-[10px] font-black animate-bounce">SEARCHING...</div>}
+                                </div>
+                            </div>
                             <div>
                                 <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Customer Name (नाम)</label>
                                 <input required type="text" className="w-full p-4 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold" value={customer.name} onChange={e => setCustomer({...customer, name: e.target.value})} placeholder="Rahul Sharma" />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Mobile No (मोबाइल)</label>
-                                <input required type="text" className="w-full p-4 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold" value={customer.mobile} onChange={e => setCustomer({...customer, mobile: e.target.value})} placeholder="+91 XXXX XXXX" />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Village / Area (गाँव / इलाका)</label>

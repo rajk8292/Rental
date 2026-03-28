@@ -1,4 +1,5 @@
 import Booking from '../models/Booking.js';
+import { sendBookingAlert } from '../utils/whatsappService.js';
 import Utensil from '../models/Utensil.js';
 import User from '../models/User.js';
 import Razorpay from 'razorpay';
@@ -105,17 +106,22 @@ export const getAllBookings = async (req, res) => {
 };
 
 export const updateBookingStatus = async (req, res) => {
-    const { status } = req.body;
     try {
-        const booking = await Booking.findById(req.params.id);
-        if (booking) {
-            booking.status = status;
-            await booking.save();
-            const populatedBooking = await Booking.findById(booking._id).populate('user', 'name mobile').populate('items.utensil', 'name');
-            res.json(populatedBooking);
-        } else {
-            res.status(404).json({ message: 'Booking not found' });
+        const { status } = req.body;
+        const booking = await Booking.findById(req.params.id)
+            .populate('user', 'name mobile')
+            .populate('items.utensil', 'name');
+
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+        
+        booking.status = status;
+        const updated = await booking.save();
+
+        if (status === 'Approved') {
+            await sendBookingAlert(updated, 'APPROVED');
         }
+
+        res.json(updated);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

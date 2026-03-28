@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data));
         setUser(data);
+        return data;
     };
 
     const register = async (name, mobile, password) => {
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data));
         setUser(data);
+        return data;
     };
 
     const logout = () => {

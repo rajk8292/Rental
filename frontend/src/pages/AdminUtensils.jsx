@@ -9,8 +9,14 @@ const AdminUtensils = () => {
     const [showForm, setShowForm] = useState(false);
     
     const [newUtensil, setNewUtensil] = useState({
-        name: '', description: '', pricePerDay: '', availableQuantity: '', image: ''
+        name: '', description: '', pricePerDay: '', availableQuantity: '', image: '', category: 'General'
     });
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredUtensils = utensils.filter(u => 
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.category?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     useEffect(() => {
         const fetchUtensils = async () => {
@@ -73,15 +79,30 @@ const AdminUtensils = () => {
     if (loading) return <div className="text-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div></div>;
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-extrabold text-gray-900">Manage Inventory</h2>
-                <button 
-                    onClick={() => setShowForm(!showForm)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition flex items-center gap-2 shadow"
-                >
-                    {showForm ? 'Close Form' : <><Plus size={20} /> Add Utensil</>}
-                </button>
+        <div className="bg-slate-50 dark:bg-slate-900/40 p-6 sm:p-10 rounded-3xl">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">Bartan Inventory</h2>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Total Items: {utensils.length}</p>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                    <div className="relative flex-grow md:w-64 group">
+                        <input 
+                            type="text" 
+                            placeholder="Find by name or type..." 
+                            className="w-full px-5 py-3.5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-800 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all shadow-sm"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <button 
+                        onClick={() => setShowForm(!showForm)}
+                        className="bg-blue-900 hover:bg-blue-800 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-xs tracking-widest transition-all flex items-center gap-2 shadow-xl shadow-blue-100 dark:shadow-none hover:-translate-y-1 active:translate-y-0"
+                    >
+                        {showForm ? 'Close Editor' : <><Plus size={20} /> Add New Item</>}
+                    </button>
+                </div>
             </div>
 
             {showForm && (
@@ -102,6 +123,22 @@ const AdminUtensils = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Availability Qty</label>
                                 <input type="number" required className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" value={newUtensil.availableQuantity} onChange={e => setNewUtensil({...newUtensil, availableQuantity: e.target.value})} />
                             </div>
+                        </div>
+
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Category (श्रेणी)</label>
+                            <select 
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-bold"
+                                value={newUtensil.category}
+                                onChange={e => setNewUtensil({...newUtensil, category: e.target.value})}
+                            >
+                                <option value="General">General</option>
+                                <option value="Plate">Plate (प्लेट)</option>
+                                <option value="Deg">Deg / Handi (देग)</option>
+                                <option value="Glass">Glass (ग्लास)</option>
+                                <option value="Spoon">Spoon / Fork (चम्मच)</option>
+                                <option value="Other">Other (अन्य)</option>
+                            </select>
                         </div>
 
                         <div className="col-span-2">
@@ -151,13 +188,14 @@ const AdminUtensils = () => {
                     <thead className="bg-gray-50 text-gray-600 text-sm border-b">
                         <tr>
                             <th className="p-4">Item</th>
+                            <th className="p-4">Category</th>
                             <th className="p-4">Pricing</th>
                             <th className="p-4">Stock</th>
                             <th className="p-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y text-gray-700">
-                        {utensils.map(u => (
+                        {filteredUtensils.map(u => (
                             <tr key={u._id} className="hover:bg-gray-50/50">
                                 <td className="p-4 flex items-center gap-4">
                                     {u.image ? (
@@ -167,11 +205,20 @@ const AdminUtensils = () => {
                                     )}
                                     <div className="font-semibold">{u.name}</div>
                                 </td>
+                                <td className="p-4 text-xs font-bold text-gray-400 uppercase tracking-widest">{u.category || 'General'}</td>
                                 <td className="p-4 font-medium">₹{u.pricePerDay} <span className="text-xs text-gray-400 font-normal">/ day</span></td>
                                 <td className="p-4">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${u.availableQuantity > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                        {u.availableQuantity} left
-                                    </span>
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${u.availableQuantity > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {u.availableQuantity} left
+                                        </span>
+                                        {u.availableQuantity < 5 && u.availableQuantity > 0 && (
+                                            <span className="text-[9px] font-black text-amber-600 uppercase animate-pulse">⚠️ Low Stock</span>
+                                        )}
+                                        {u.availableQuantity === 0 && (
+                                            <span className="text-[9px] font-black text-red-600 uppercase animate-pulse">🚨 Out of Stock</span>
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="p-4 text-right">
                                     <button onClick={() => handleDeleteUtensil(u._id)} className="text-sm font-semibold text-red-500 hover:text-red-700 hover:underline">

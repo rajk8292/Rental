@@ -15,6 +15,8 @@ import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+router.get('/ping', (req, res) => res.send('Booking API Alive'));
+
 // Public/Protected Routes
 router.post('/payment/order', protect, createPaymentOrder);
 router.post('/payment/verify', protect, verifyPayment);

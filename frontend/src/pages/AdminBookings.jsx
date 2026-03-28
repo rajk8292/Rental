@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from '../api/axios';
+import { FileText } from 'lucide-react';
+import { generateReceipt } from '../utils/generateReceipt';
 
 const AdminBookings = () => {
     const [bookings, setBookings] = useState([]);
@@ -76,11 +78,13 @@ const AdminBookings = () => {
                                 <th className="p-4 font-semibold">Approval Status</th>
                                 <th className="p-4 font-semibold">Tracking Status</th>
                                 <th className="p-4 font-semibold">Payment</th>
+                                <th className="p-4 font-semibold text-center">Receipt</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y text-sm">
                             {bookings.map(booking => (
                                 <tr key={booking._id} className="hover:bg-gray-50/50">
+                                    {/* ... existing cells ... */}
                                     <td className="p-4">
                                         <div className="font-bold text-gray-900">{booking.user?.name || 'Unknown'}</div>
                                         <div className="text-xs text-gray-500 font-medium">{booking.user?.mobile || 'No Mobile'}</div>
@@ -159,6 +163,15 @@ const AdminBookings = () => {
                                                 </button>
                                             )}
                                         </div>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                       <button 
+                                          onClick={() => generateReceipt(booking)}
+                                          className="p-2 transition-all hover:scale-110 active:scale-95 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-xl shadow-sm border border-indigo-100"
+                                          title="Download PDF Receipt"
+                                       >
+                                          <FileText size={20} />
+                                       </button>
                                     </td>
                                 </tr>
                             ))}

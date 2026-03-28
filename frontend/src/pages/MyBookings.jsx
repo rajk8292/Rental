@@ -1,8 +1,10 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
-import { CreditCard, Calendar, Repeat, Smartphone, QrCode, X, CheckCircle2 } from 'lucide-react';
+import { CreditCard, Calendar, Repeat, Smartphone, QrCode, X, CheckCircle2, FileText } from 'lucide-react';
 import { PAYMENT_CONFIG } from '../constants/payment.js';
+import { QRCodeCanvas } from 'qrcode.react';
+import { generateReceipt } from '../utils/generateReceipt';
 
 const MyBookings = () => {
     const [bookings, setBookings] = useState([]);
@@ -86,7 +88,15 @@ const MyBookings = () => {
                         <div key={booking._id} className="bg-white border rounded-3xl shadow-sm hover:shadow-lg transition p-8 flex flex-col border-gray-100 relative overflow-hidden group">
                             <div className="flex justify-between items-start border-b border-dashed border-gray-200 pb-6 mb-6">
                                 <div className="space-y-1">
-                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Order ID: {booking._id.slice(-6)}</h3>
+                                    <div className="flex items-center gap-3">
+                                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Order ID: {booking._id.slice(-6)}</h3>
+                                        <button 
+                                            onClick={() => generateReceipt(booking)}
+                                            className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter bg-indigo-50 px-2 py-1 rounded-md"
+                                        >
+                                            <FileText size={12} /> Receipt
+                                        </button>
+                                    </div>
                                     <div className="flex flex-wrap gap-2">
                                         {booking.items.map((item, idx) => (
                                             <span key={idx} className="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full border border-indigo-100">
@@ -95,11 +105,10 @@ const MyBookings = () => {
                                         ))}
                                     </div>
                                 </div>
-                                <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-sm ${
-                                    booking.status === 'Approved' ? 'bg-green-500 text-white' :
-                                    booking.status === 'Rejected' ? 'bg-red-500 text-white' :
-                                    'bg-amber-400 text-white'
-                                }`}>
+                                <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider shadow-sm ${booking.status === 'Approved' ? 'bg-green-500 text-white' :
+                                        booking.status === 'Rejected' ? 'bg-red-500 text-white' :
+                                            'bg-amber-400 text-white'
+                                    }`}>
                                     {booking.status}
                                 </span>
                             </div>
@@ -115,62 +124,61 @@ const MyBookings = () => {
                                         <span className="font-bold text-gray-800 flex items-center gap-2"><Calendar size={14} className="text-indigo-400" /> {new Date(booking.endDate).toLocaleDateString()}</span>
                                     </div>
                                 </div>
-                                
+
                                 {/* Tracking Timeline */}
                                 {booking.status === 'Approved' && (
                                     <div className="py-4 border-t border-dashed border-gray-100 mt-2">
                                         <div className="flex justify-between items-center relative mb-2">
-                                           {/* Line */}
-                                           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2 z-0"></div>
-                                           <div className="absolute top-1/2 left-0 h-0.5 bg-indigo-600 -translate-y-1/2 z-0 transition-all duration-500" 
-                                                style={{ width: `${
-                                                   booking.deliveryStatus === 'Confirmed' ? '0%' :
-                                                   booking.deliveryStatus === 'Packed' ? '25%' :
-                                                   booking.deliveryStatus === 'Shipped' ? '50%' :
-                                                   booking.deliveryStatus === 'Delivered' ? '75%' :
-                                                   booking.deliveryStatus === 'Returned' || booking.deliveryStatus === 'Checked' ? '100%' : '0%'
-                                                }` }}></div>
-                                           
-                                           {[
-                                               { name: 'Confirmed', icon: '📦' },
-                                               { name: 'Shipped', icon: '🚚' },
-                                               { name: 'Delivered', icon: '🏠' },
-                                               { name: 'Returned', icon: '🔄' }
-                                           ].map((step, idx) => {
-                                               const isActive = [
-                                                   'Confirmed', 'Packed', 'Shipped', 'Delivered', 'Returned', 'Checked'
-                                               ].indexOf(booking.deliveryStatus) >= [
-                                                   'Confirmed', 'Shipped', 'Delivered', 'Returned'
-                                               ].indexOf(step.name);
+                                            {/* Line */}
+                                            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2 z-0"></div>
+                                            <div className="absolute top-1/2 left-0 h-0.5 bg-indigo-600 -translate-y-1/2 z-0 transition-all duration-500"
+                                                style={{
+                                                    width: `${booking.deliveryStatus === 'Confirmed' ? '0%' :
+                                                            booking.deliveryStatus === 'Packed' ? '25%' :
+                                                            booking.deliveryStatus === 'Shipped' ? '50%' :
+                                                            booking.deliveryStatus === 'Delivered' ? '75%' :
+                                                                booking.deliveryStatus === 'Returned' || booking.deliveryStatus === 'Checked' ? '100%' : '0%'
+                                                        }`
+                                                }}></div>
 
-                                               const isCurrent = booking.deliveryStatus === step.name || (step.name === 'Shipped' && booking.deliveryStatus === 'Packed') || (step.name === 'Returned' && booking.deliveryStatus === 'Checked');
+                                            {[
+                                                { name: 'Confirmed', icon: '📦' },
+                                                { name: 'Shipped', icon: '🚚' },
+                                                { name: 'Delivered', icon: '🏠' },
+                                                { name: 'Returned', icon: '🔄' }
+                                            ].map((step, idx) => {
+                                                const isActive = [
+                                                    'Confirmed', 'Packed', 'Shipped', 'Delivered', 'Returned', 'Checked'
+                                                ].indexOf(booking.deliveryStatus) >= [
+                                                    'Confirmed', 'Shipped', 'Delivered', 'Returned'
+                                                ].indexOf(step.name);
 
-                                               return (
-                                                  <div key={idx} className="relative z-10 flex flex-col items-center">
-                                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shadow-sm transition-all duration-300 border-2 ${
-                                                          isActive ? 'bg-indigo-600 border-indigo-600 text-white scale-110' : 'bg-white border-gray-300 text-gray-400'
-                                                      } ${isCurrent ? 'ring-4 ring-indigo-100' : ''}`}>
-                                                          {step.icon}
-                                                      </div>
-                                                      <span className={`text-[8px] font-black uppercase mt-1 tracking-tighter ${isActive ? 'text-indigo-700' : 'text-gray-400'}`}>
-                                                          {step.name}
-                                                      </span>
-                                                  </div>
-                                               );
-                                           })}
+                                                const isCurrent = booking.deliveryStatus === step.name || (step.name === 'Shipped' && booking.deliveryStatus === 'Packed') || (step.name === 'Returned' && booking.deliveryStatus === 'Checked');
+
+                                                return (
+                                                    <div key={idx} className="relative z-10 flex flex-col items-center">
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs shadow-sm transition-all duration-300 border-2 ${isActive ? 'bg-indigo-600 border-indigo-600 text-white scale-110' : 'bg-white border-gray-300 text-gray-400'
+                                                            } ${isCurrent ? 'ring-4 ring-indigo-100' : ''}`}>
+                                                            {step.icon}
+                                                        </div>
+                                                        <span className={`text-[8px] font-black uppercase mt-1 tracking-tighter ${isActive ? 'text-indigo-700' : 'text-gray-400'}`}>
+                                                            {step.name}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div className="flex justify-between items-center bg-indigo-900 text-white p-5 rounded-2xl shadow-indigo-200 shadow-md">
                                     <div>
                                         <p className="text-[10px] uppercase font-black text-indigo-300 tracking-widest">Total Valuation</p>
                                         <p className="text-3xl font-black">₹{booking.totalPrice}</p>
                                     </div>
                                     <div className="text-right">
-                                        <span className={`text-[10px] font-black uppercase tracking-tighter block mb-1 ${
-                                            booking.paymentStatus === 'Completed' ? 'text-green-400' : 'text-amber-400'
-                                        }`}>
+                                        <span className={`text-[10px] font-black uppercase tracking-tighter block mb-1 ${booking.paymentStatus === 'Completed' ? 'text-green-400' : 'text-amber-400'
+                                            }`}>
                                             Payment {booking.paymentStatus}
                                         </span>
                                         <div className="flex gap-2 justify-end">
@@ -182,7 +190,7 @@ const MyBookings = () => {
                             </div>
 
                             {booking.paymentStatus !== 'Completed' && booking.status !== 'Rejected' && (
-                                <button 
+                                <button
                                     onClick={() => handlePaymentSelect(booking)}
                                     className="mt-6 w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-sm hover:bg-indigo-700 transition flex items-center justify-center gap-3 shadow-xl shadow-indigo-100"
                                 >
@@ -203,8 +211,8 @@ const MyBookings = () => {
                                 <h3 className="text-2xl font-black text-gray-900 leading-none">Choose Payment</h3>
                                 <p className="text-gray-500 mt-2 font-bold text-sm">Amount to pay: <span className="text-indigo-600">₹{selectedBooking?.totalPrice}</span></p>
                             </div>
-                            <button 
-                                onClick={() => {setShowPaymentModal(false); setPaymentMethod(null);}} 
+                            <button
+                                onClick={() => { setShowPaymentModal(false); setPaymentMethod(null); }}
                                 className="p-2 hover:bg-white rounded-full transition text-gray-400 hover:text-red-500 shadow-sm border border-transparent hover:border-red-100"
                             >
                                 <X size={24} />
@@ -213,7 +221,7 @@ const MyBookings = () => {
 
                         {!paymentMethod ? (
                             <div className="p-8 space-y-4">
-                                <button 
+                                <button
                                     onClick={() => handleRazorpayPayment(selectedBooking)}
                                     className="w-full flex items-center justify-between p-6 rounded-3xl border-2 border-indigo-50 hover:border-indigo-600 hover:bg-indigo-50/30 transition group"
                                 >
@@ -231,7 +239,7 @@ const MyBookings = () => {
                                     </div>
                                 </button>
 
-                                <button 
+                                <button
                                     onClick={() => setPaymentMethod('phonepe')}
                                     className="w-full flex items-center justify-between p-6 rounded-3xl border-2 border-[#6739B7]/10 hover:border-[#6739B7] hover:bg-[#6739B7]/5 transition group"
                                 >
@@ -259,13 +267,14 @@ const MyBookings = () => {
                                     <p className="text-gray-500 font-bold mt-2">Dinesh Bartan Bhandar</p>
                                 </div>
 
-                                {/* UPI QR Placeholder UI */}
+                                {/* UPI QR Generator */}
                                 <div className="bg-gray-50 p-6 rounded-[32px] border-2 border-dashed border-gray-200 mb-8 relative group">
                                     <div className="aspect-square bg-white rounded-2xl flex flex-col items-center justify-center shadow-inner overflow-hidden border border-gray-100">
-                                        <img 
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=${upiID}%26pn=${upiName}%26am=${selectedBooking?.totalPrice}%26cu=INR`}
-                                            alt="PhonePe QR"
-                                            className="w-4/5 h-4/5 object-contain"
+                                        <QRCodeCanvas 
+                                            value={`upi://pay?pa=${upiID}&pn=${upiName}&am=${selectedBooking?.totalPrice}&cu=INR`}
+                                            size={200}
+                                            level="H"
+                                            includeMargin={true}
                                         />
                                     </div>
                                     <div className="mt-4">
@@ -279,13 +288,13 @@ const MyBookings = () => {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <a 
+                                    <a
                                         href={`upi://pay?pa=${upiID}&pn=${upiName}&am=${selectedBooking?.totalPrice}&cu=INR`}
                                         className="w-full bg-[#6739B7] text-white py-5 rounded-3xl font-black text-base hover:bg-[#5c33a3] transition flex items-center justify-center gap-3 shadow-xl shadow-[#6739B7]/20"
                                     >
                                         <Smartphone size={20} /> OPEN IN PHONEPE
                                     </a>
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             alert('Please send the screenshot to our Whatsapp number for verification.');
                                             setShowPaymentModal(false);

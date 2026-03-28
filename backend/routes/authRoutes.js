@@ -1,9 +1,11 @@
 import express from 'express';
-import { registerUser, authUser } from '../controllers/authController.js';
+import { registerUser, authUser, findUserByMobile } from '../controllers/authController.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login', authUser);
+router.get('/mobile/:mobile', protect, admin, findUserByMobile);
 
 export default router;
