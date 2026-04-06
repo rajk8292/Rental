@@ -33,7 +33,7 @@ export const createBooking = async (req, res) => {
 };
 
 export const createManualBooking = async (req, res) => {
-    const { name, mobile, village, district, items, startDate, endDate, paymentStatus } = req.body;
+    const { name, mobile, village, post, thana, district, items, startDate, endDate, paymentStatus, advance } = req.body;
     try {
         // Validation check
         if(!name || !mobile) {
@@ -43,12 +43,10 @@ export const createManualBooking = async (req, res) => {
         // 1. Find or Create User
         let user = await User.findOne({ mobile });
         if (!user) {
-            // Mobile unique check should be done by mongoose uniquely, 
-            // but just to be safe we use a try-catch for user creation.
             user = new User({ 
                 name, 
                 mobile, 
-                password: 'default_password' // User's pre-save will hash this
+                password: 'default_password' 
             });
             await user.save();
         }
@@ -69,8 +67,11 @@ export const createManualBooking = async (req, res) => {
             startDate,
             endDate,
             village: village || 'Local',
+            post: post || '',
+            thana: thana || '',
             district: district || 'Local',
             totalPrice,
+            advance: advance || 0,
             status: 'Approved',
             paymentStatus: paymentStatus || 'Pending'
         });

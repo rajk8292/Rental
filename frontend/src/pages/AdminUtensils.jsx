@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import axios from '../api/axios';
-import { Package, Plus } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2 } from 'lucide-react';
 
 const AdminUtensils = () => {
     const [utensils, setUtensils] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [showForm, setShowForm] = useState(false);
-    
+    const [editingUtensil, setEditingUtensil] = useState(null);
     const [newUtensil, setNewUtensil] = useState({
-        name: '', description: '', pricePerDay: '', availableQuantity: '', image: '', category: 'General'
+        name: '', description: '', pricePerDay: '', availableQuantity: '', image: '', category: 'Cooking'
     });
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -54,15 +54,42 @@ const AdminUtensils = () => {
     const handleAddSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { data } = await axios.post('/utensils', newUtensil);
-            setUtensils([...utensils, data]);
-            setNewUtensil({ name: '', description: '', pricePerDay: '', availableQuantity: '', image: '' });
+            const utensilData = {
+                ...newUtensil,
+                pricePerDay: Number(newUtensil.pricePerDay),
+                availableQuantity: Number(newUtensil.availableQuantity)
+            };
+
+            if (editingUtensil) {
+                console.log('Sending Update Request:', editingUtensil._id, utensilData);
+                const { data } = await axios.put(`/utensils/${editingUtensil._id}`, utensilData);
+                setUtensils(prev => prev.map(u => u._id === data._id ? data : u));
+                alert('Utensil updated successfully');
+            } else {
+                const { data } = await axios.post('/utensils', utensilData);
+                setUtensils(prev => [...prev, data]);
+                alert('Utensil created successfully');
+            }
+            setNewUtensil({ name: '', description: '', pricePerDay: '', availableQuantity: '', image: '', category: 'Cooking' });
             setShowForm(false);
-            alert('Utensil created successfully');
+            setEditingUtensil(null);
         } catch (error) {
-            console.error('Failed to create utensil', error.response?.data || error);
-            alert(`Failed to create utensil: ${error.response?.data?.message || error.message}`);
+            console.error('SERVER SAVE ERROR:', error.response?.data || error);
+            alert(`Save Error: ${error.response?.data?.message || error.message}`);
         }
+    };
+
+    const handleEditUtensil = (u) => {
+        setEditingUtensil(u);
+        setNewUtensil({
+            name: u.name,
+            description: u.description || '',
+            pricePerDay: u.pricePerDay,
+            availableQuantity: u.availableQuantity,
+            image: u.image || '',
+            category: u.category || 'Cooking'
+        });
+        setShowForm(true);
     };
 
     const handleDeleteUtensil = async (id) => {
@@ -97,7 +124,13 @@ const AdminUtensils = () => {
                         />
                     </div>
                     <button 
-                        onClick={() => setShowForm(!showForm)}
+                        onClick={() => {
+                            if (showForm) {
+                                setEditingUtensil(null);
+                                setNewUtensil({ name: '', description: '', pricePerDay: '', availableQuantity: '', image: '', category: 'Cooking' });
+                            }
+                            setShowForm(!showForm);
+                        }}
                         className="bg-blue-900 hover:bg-blue-800 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-xs tracking-widest transition-all flex items-center gap-2 shadow-xl shadow-blue-100 dark:shadow-none hover:-translate-y-1 active:translate-y-0"
                     >
                         {showForm ? 'Close Editor' : <><Plus size={20} /> Add New Item</>}
@@ -106,8 +139,14 @@ const AdminUtensils = () => {
             </div>
 
             {showForm && (
-                <div className="mb-10 bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                    <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2"><Package className="text-indigo-600" /> New Catalog Entry</h3>
+                <div className="mb-10 bg-white rounded-2xl shadow-sm border-2 border-blue-500/20 p-8 animate-in slide-in-from-top-4 duration-300">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center justify-between gap-2 border-b pb-4">
+                        <div className="flex items-center gap-2">
+                            <Package className={editingUtensil ? 'text-amber-500' : 'text-indigo-600'} /> 
+                            {editingUtensil ? `EDITING: ${editingUtensil.name}` : 'Create New Catalog Entry'}
+                        </div>
+                        {editingUtensil && <span className="bg-amber-100 text-amber-700 text-[10px] uppercase font-black px-3 py-1 rounded-full">Edit Mode</span>}
+                    </h3>
                     <form onSubmit={handleAddSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Utensil Name</label>
@@ -132,12 +171,10 @@ const AdminUtensils = () => {
                                 value={newUtensil.category}
                                 onChange={e => setNewUtensil({...newUtensil, category: e.target.value})}
                             >
-                                <option value="General">General</option>
-                                <option value="Plate">Plate (प्लेट)</option>
-                                <option value="Deg">Deg / Handi (देग)</option>
-                                <option value="Glass">Glass (ग्लास)</option>
-                                <option value="Spoon">Spoon / Fork (चम्मच)</option>
-                                <option value="Other">Other (अन्य)</option>
+                                <option value="Cooking">Cooking (पकाना)</option>
+                                <option value="Serving">Serving (परोसना)</option>
+                                <option value="Utility">Utility (सुविधा)</option>
+                                <option value="Extra">Extra (अन्य)</option>
                             </select>
                         </div>
 
@@ -175,8 +212,8 @@ const AdminUtensils = () => {
                         </div>
 
                         <div className="col-span-2 pt-4">
-                            <button type="submit" disabled={uploading} className="w-full md:w-auto bg-indigo-600 text-white font-semibold flex justify-center py-3 px-8 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50">
-                                Save Catalog Entry
+                            <button type="submit" disabled={uploading} className={`w-full md:w-auto font-black flex justify-center py-4 px-12 rounded-2xl transition-all uppercase text-xs tracking-widest shadow-xl ${editingUtensil ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-100 text-white' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100 text-white'}`}>
+                                {editingUtensil ? 'Update Item Info' : 'Create Catalog Entry'}
                             </button>
                         </div>
                     </form>
@@ -221,9 +258,22 @@ const AdminUtensils = () => {
                                     </div>
                                 </td>
                                 <td className="p-4 text-right">
-                                    <button onClick={() => handleDeleteUtensil(u._id)} className="text-sm font-semibold text-red-500 hover:text-red-700 hover:underline">
-                                        Delete
-                                    </button>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button 
+                                            onClick={() => handleEditUtensil(u)} 
+                                            className="p-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm border border-indigo-100"
+                                            title="Edit Item"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDeleteUtensil(u._id)} 
+                                            className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100"
+                                            title="Delete Item"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

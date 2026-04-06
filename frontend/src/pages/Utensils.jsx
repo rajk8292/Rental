@@ -29,7 +29,7 @@ const Utensils = () => {
         return matchesSearch && matchesCat;
     });
 
-    const categories = ['All', 'Plate', 'Deg', 'Glass', 'Spoon', 'Other'];
+    const categories = ['All', 'Cooking', 'Serving', 'Utility', 'Extra'];
 
     if (loading) return <div className="text-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div></div>;
     if (error) return <div className="text-red-500 text-center p-4 bg-red-50 rounded-lg max-w-lg mx-auto mt-10">{error}</div>;
@@ -65,10 +65,10 @@ const Utensils = () => {
                         }`}
                     >
                         {cat === 'All' ? 'Sabhi (सभी)' : 
-                         cat === 'Plate' ? 'Plates (प्लेट)' :
-                         cat === 'Deg' ? 'Deg (देग)' :
-                         cat === 'Glass' ? 'Glass (ग्लास)' :
-                         cat === 'Spoon' ? 'Spoons (चम्मच)' : cat}
+                         cat === 'Cooking' ? 'Pakana (पकाना)' :
+                         cat === 'Serving' ? 'Parosna (परोसना)' :
+                         cat === 'Utility' ? 'Bhandaran (भंडारण)' : 
+                         cat === 'Extra' ? 'Extra (अन्य)' : cat}
                     </button>
                 ))}
             </div>

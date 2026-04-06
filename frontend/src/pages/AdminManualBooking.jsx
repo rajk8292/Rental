@@ -6,7 +6,8 @@ import { PAYMENT_CONFIG } from '../constants/payment.js';
 
 const AdminManualBooking = () => {
     const [utensils, setUtensils] = useState([]);
-    const [customer, setCustomer] = useState({ name: '', mobile: '', village: '', district: '' });
+    const [customer, setCustomer] = useState({ name: '', mobile: '', village: '', post: '', thana: '', district: '' });
+    const [advance, setAdvance] = useState(0);
     const [selectedItems, setSelectedItems] = useState([]);
     const [startDate, setStartDate] = useState(new Date());
     const [endDate, setEndDate] = useState(new Date());
@@ -78,15 +79,18 @@ const AdminManualBooking = () => {
                 items: selectedItems,
                 startDate,
                 endDate,
-                paymentStatus
+                paymentStatus,
+                advance: Number(advance)
             });
             
+            console.log('Booking Created:', data);
             setLastBooking(data);
             setShowReceipt(true);
             
             // Clean up form
-            setCustomer({ name: '', mobile: '', village: '', district: '' });
+            setCustomer({ name: '', mobile: '', village: '', post: '', thana: '', district: '' });
             setSelectedItems([]);
+            setAdvance(0);
         } catch (error) {
             console.error('Booking Error:', error);
             alert(`Booking Failed: ${error.response?.data?.message || error.message}`);
@@ -150,8 +154,16 @@ const AdminManualBooking = () => {
                                 <input required type="text" className="w-full p-4 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold" value={customer.name} onChange={e => setCustomer({...customer, name: e.target.value})} placeholder="Rahul Sharma" />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Village / Area (गाँव / इलाका)</label>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Village (ग्राम)</label>
                                 <input required type="text" className="w-full p-4 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold" value={customer.village} onChange={e => setCustomer({...customer, village: e.target.value})} placeholder="e.g. Rampur" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Post (पोस्ट)</label>
+                                <input required type="text" className="w-full p-4 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold" value={customer.post} onChange={e => setCustomer({...customer, post: e.target.value})} placeholder="e.g. Post Office Name" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Police Station (थाना)</label>
+                                <input required type="text" className="w-full p-4 border rounded-2xl bg-gray-50 outline-none focus:ring-2 focus:ring-indigo-500 font-bold" value={customer.thana} onChange={e => setCustomer({...customer, thana: e.target.value})} placeholder="e.g. PS Location" />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">District (जिला)</label>
@@ -212,6 +224,19 @@ const AdminManualBooking = () => {
                                     <label className="block text-[10px] font-black text-gray-400 uppercase mb-2">कब तक (End Date)</label>
                                     <DatePicker selected={endDate} onChange={date => setEndDate(date)} minDate={startDate} className="w-full p-4 border rounded-2xl bg-gray-50 font-bold" />
                                 </div>
+                                <div className="pt-4 border-t border-dashed">
+                                    <label className="block text-[10px] font-black text-indigo-600 uppercase mb-2 tracking-widest">Advance Payment (अग्रिम)</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-indigo-400">₹</span>
+                                        <input 
+                                            type="number" 
+                                            className="w-full p-4 pl-8 border-2 border-indigo-100 rounded-2xl bg-indigo-50 focus:bg-white outline-none focus:ring-2 focus:ring-indigo-500 font-black text-indigo-700" 
+                                            value={advance} 
+                                            onChange={e => setAdvance(e.target.value)} 
+                                            placeholder="0" 
+                                        />
+                                    </div>
+                                </div>
                                 
                                 <div className="pt-8 border-t border-dashed">
                                     <div className="flex justify-between items-center mb-6 bg-indigo-50 p-5 rounded-2xl">
@@ -239,113 +264,137 @@ const AdminManualBooking = () => {
 
             {/* Hindi Receipt Modal */}
             {showReceipt && lastBooking && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in zoom-in duration-300">
-                    <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden relative border-[12px] border-white ring-1 ring-gray-200 flex flex-col max-h-[90vh]">
-                        <button onClick={() => setShowReceipt(false)} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition p-2 bg-gray-50 rounded-full z-10">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 animate-in fade-in zoom-in duration-300">
+                    <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative border-[16px] border-white ring-1 ring-black/5 flex flex-col max-h-[95vh]">
+                        <button onClick={() => setShowReceipt(false)} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition p-2 bg-gray-50 rounded-full z-[60]">
                             <X size={24} />
                         </button>
 
-                        <div ref={receiptRef} className="p-10 flex-grow overflow-y-auto bg-white" id="printable-receipt">
-                            <div className="text-center pb-8 mb-8">
-                                <h1 className="text-5xl font-black text-gray-900 uppercase tracking-tighter mb-2">दिनेश बर्तन भंडार</h1>
-                                <p className="text-sm font-bold text-indigo-600 tracking-[0.3em] uppercase mb-4">किराये (Rental) की पक्की रसीद</p>
-                                <div className="h-1.5 w-40 bg-gray-900 mx-auto rounded-full mb-6"></div>
-                                <div className="text-[12px] font-black text-gray-500 uppercase flex flex-col gap-1 items-center">
-                                    <span>📞 संपर्क: +91 95460 52856</span>
-                                    <span>📍 पता: चैनपुर हाटा, बिहार (Chainpur Hata, Bihar)</span>
+                        <div ref={receiptRef} className="p-8 flex-grow overflow-y-auto bg-[#fff0f3]" id="printable-receipt">
+                            {/* Header - Matching Image */}
+                            <div className="text-center border-b-2 border-black pb-4 mb-6 relative text-black">
+                                <span className="absolute top-0 right-0 text-[10px] font-bold text-gray-400 font-serif lowercase">Mob: 9546052856</span>
+                                <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-1 font-serif tracking-tighter">दिनेश बर्तन भण्डार</h1>
+                                <p className="text-sm font-bold text-gray-800 mb-1">प्रो. : दिनेश साह</p>
+                                <p className="text-[11px] font-bold text-gray-600 uppercase tracking-tight">
+                                    ग्राम- चैनपुर ( बीच टोला ), पो. : चैनपुर हाता, जिला : गोपालगंज ( बिहार )
+                                </p>
+                            </div>
+
+                            {/* Customer Detail Lines - Matching Image Lines */}
+                            <div className="space-y-4 mb-8 text-[13px] font-bold text-gray-800">
+                                <div className="flex gap-2 items-end">
+                                    <span className="shrink-0">साटाधारी का नाम</span>
+                                    <div className="flex-grow border-b border-black border-dotted pb-0.5 px-4 font-black text-indigo-700 italic">{lastBooking.user?.name}</div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex gap-2 items-end">
+                                        <span className="shrink-0">ग्राम</span>
+                                        <div className="flex-grow border-b border-black border-dotted pb-0.5 px-4">{lastBooking.village}</div>
+                                    </div>
+                                    <div className="flex gap-2 items-end">
+                                        <span className="shrink-0">पोस्ट</span>
+                                        <div className="flex-grow border-b border-black border-dotted pb-0.5 px-4">{lastBooking.post}</div>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex gap-2 items-end">
+                                        <span className="shrink-0">थाना</span>
+                                        <div className="flex-grow border-b border-black border-dotted pb-0.5 px-4">{lastBooking.thana}</div>
+                                    </div>
+                                    <div className="flex gap-2 items-end">
+                                        <span className="shrink-0">जिला</span>
+                                        <div className="flex-grow border-b border-black border-dotted pb-0.5 px-4">{lastBooking.district}</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span>के रहने वाला हूँ।</span>
+                                </div>
+                                <div className="flex gap-2 items-baseline">
+                                    <span>मैं इनको अपना</span>
+                                    <div className="flex-grow border-b border-black border-dotted max-w-[100px] text-center italic text-indigo-600">बर्तन</div>
+                                    <span>का साटा दिनांक</span>
+                                    <div className="flex-grow border-b border-black border-dotted px-2 text-center text-indigo-600 underline">{new Date(lastBooking.startDate).toLocaleDateString()}</div>
+                                </div>
+                                <div className="flex gap-2 items-baseline">
+                                    <span>से दिनांक</span>
+                                    <div className="flex-grow border-b border-black border-dotted px-2 text-center text-indigo-600 underline">{new Date(lastBooking.endDate).toLocaleDateString()}</div>
+                                    <span>को / तक के लिए तय करता हूँ।</span>
+                                </div>
+                                <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                    <div className="flex gap-2 items-center">
+                                         <span className="text-gray-500 text-[11px] uppercase tracking-widest">साटाधारी का मो.</span>
+                                         <span className="font-black text-indigo-600 underline">{lastBooking.user?.mobile}</span>
+                                    </div>
+                                    <div className="text-[10px] font-black italic opacity-60">ID: {lastBooking._id.slice(-8).toUpperCase()}</div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-10 text-xs mb-10 pb-10 border-b border-gray-100 border-dashed">
-                                <div className="space-y-3">
-                                    <p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">ग्राहक की जानकारी (Customer Information)</p>
-                                    <div className="space-y-1">
-                                        <p className="text-2xl font-black text-gray-900 leading-none">{lastBooking.user?.name}</p>
-                                        <p className="font-bold text-gray-500 text-sm">मो: {lastBooking.user?.mobile}</p>
-                                        <p className="font-bold text-gray-500 text-sm leading-tight text-indigo-600">पता: {lastBooking.village}, {lastBooking.district}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right space-y-3 border-l pl-10">
-                                    <p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">रसीद विवरण (Receipt Details)</p>
-                                    <div className="space-y-1">
-                                        <p className="font-black text-gray-900 uppercase text-lg">रसीद सं: {lastBooking._id.slice(-6)}</p>
-                                        <p className="font-bold text-gray-500">तिथि (Date): {new Date().toLocaleDateString()}</p>
-                                        <p className="inline-block bg-gray-900 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase mt-2">स्थिति: {lastBooking.paymentStatus === 'Completed' ? 'भुगतान सफल' : 'भुगतान बाकी'}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <table className="w-full text-left mb-10 text-sm">
+                            {/* Table - Matching Image Grid */}
+                            <table className="w-full border-2 border-black mb-6 text-[12px]">
                                 <thead>
-                                    <tr className="bg-gray-50 text-gray-400">
-                                        <th className="p-5 font-black uppercase text-[11px] tracking-widest first:rounded-l-2xl">विवरण (Particulars)</th>
-                                        <th className="p-5 font-black uppercase text-[11px] tracking-widest text-center">मात्रा (Qty)</th>
-                                        <th className="p-5 font-black uppercase text-[11px] tracking-widest text-right">दर (Rate)</th>
-                                        <th className="p-5 font-black uppercase text-[11px] tracking-widest text-right last:rounded-r-2xl">कुल (Total)</th>
+                                    <tr className="border-b-2 border-black divide-x-2 divide-black bg-gray-50">
+                                        <th className="w-12 p-1 text-center font-black">क्र.सं.</th>
+                                        <th className="p-1 px-4 text-left font-black">सामान का विवरण</th>
+                                        <th className="w-20 p-1 text-center font-black">तायदाद</th>
+                                        <th className="w-20 p-1 text-center font-black">रू०</th>
+                                        <th className="w-12 p-1 text-center font-black">पै०</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-50">
+                                <tbody className="divide-y-2 divide-black">
                                     {lastBooking.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50/50 transition">
-                                            <td className="p-5 font-black text-gray-900">{item.name}</td>
-                                            <td className="p-5 text-center font-bold text-gray-500 bg-gray-50/20">{item.quantity}</td>
-                                            <td className="p-5 text-right font-bold text-gray-500 underline decoration-indigo-200">₹{item.pricePerDay}</td>
-                                            <td className="p-5 text-right font-black text-indigo-600 text-lg">₹{item.pricePerDay * item.quantity}</td>
+                                        <tr key={idx} className="divide-x-2 divide-black">
+                                            <td className="p-2 text-center font-bold">{idx + 1}.</td>
+                                            <td className="p-2 px-4 font-black text-gray-900 uppercase italic tracking-tighter">{item.name}</td>
+                                            <td className="p-2 text-center font-black text-indigo-700">{item.quantity}</td>
+                                            <td className="p-2 text-right font-black px-3">{item.pricePerDay * item.quantity}</td>
+                                            <td className="p-2 text-center font-bold text-gray-400">00</td>
                                         </tr>
                                     ))}
+                                    {/* Fill empty rows for aesthetic if needed, but here we just show what exists */}
                                 </tbody>
+                                <tfoot>
+                                    <tr className="border-t-2 border-black divide-x-2 divide-black">
+                                        <td colSpan="3" rowSpan={3} className="p-4 text-[10px] font-bold text-gray-500 leading-relaxed align-top italic">
+                                            १. हमारे यहाँ हर प्रकार का बर्तन किराये पर उपलब्ध है। सामान ले जाने और ले आने की जिम्मेदारी साटाधारक की होगी। कोई भी सामान गुम होने पर भी उसकी जिम्मेदारी साटाधारक की ही होगी।
+                                        </td>
+                                        <td className="p-2 font-black bg-gray-50">टोटल</td>
+                                        <td className="p-2 text-right font-black px-3 underline decoration-double">{lastBooking.totalPrice}</td>
+                                    </tr>
+                                    <tr className="border-t-2 border-black divide-x-2 divide-black">
+                                        <td className="p-2 font-black bg-gray-100">अग्रिम</td>
+                                        <td className="p-2 text-right font-black px-3 bg-gray-50">-{lastBooking.advance || 0}</td>
+                                    </tr>
+                                    <tr className="border-t-2 border-black divide-x-2 divide-black bg-indigo-50/50">
+                                        <td className="p-2 font-black text-indigo-700">बाकी</td>
+                                        <td className="p-2 text-right font-black px-3 text-indigo-900 text-lg italic">₹{lastBooking.totalPrice - (lastBooking.advance || 0)}</td>
+                                    </tr>
+                                </tfoot>
                             </table>
 
-                            <div className="flex flex-col md:flex-row justify-between items-center gap-10 bg-gray-900 text-white p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
-                                <div className="space-y-2 relative z-10 max-w-sm">
-                                    <p className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">शर्तें (Notice)</p>
-                                    <p className="text-[12px] font-bold text-gray-400 italic leading-relaxed">
-                                        साफ-सफाई (Cleaning) हमारी जिम्मेदारी है। कृपया बर्तन सुरक्षित लौटाएँ। टूट-फूट का हर्जाना अलग से देना होगा।
-                                    </p>
-                                </div>
-                                <div className="text-right relative z-10">
-                                    <p className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-1">कुल भुगतान (Net Total)</p>
-                                    <p className="text-6xl font-black italic tracking-tighter">₹{lastBooking.totalPrice}</p>
-                                </div>
-                            </div>
-                            
-                            {lastBooking.paymentStatus !== 'Completed' && (
-                                <div className="mt-10 p-8 border-2 border-dashed border-indigo-100 rounded-[2rem] flex items-center justify-between bg-indigo-50/30">
-                                    <div className="space-y-1">
-                                        <p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">फोन-पे द्वारा भुगतान करें (Pay via PhonePe)</p>
-                                        <p className="text-[10px] font-bold text-gray-400">स्कैन करें या UPI ID: <span className="text-gray-900 font-black">{PAYMENT_CONFIG.upiID}</span> पर ₹{lastBooking.totalPrice} का भुगतान करें</p>
-                                    </div>
-                                    <img 
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=upi://pay?pa=${PAYMENT_CONFIG.upiID}%26pn=${PAYMENT_CONFIG.upiName}%26am=${lastBooking.totalPrice}%26cu=INR`}
-                                        alt="UPI QR"
-                                        className="w-20 h-20 rounded-xl border-4 border-white shadow-sm"
-                                    />
-                                </div>
-                            )}
-
-                            <div className="mt-16 text-center">
-                                <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em] mb-2 font-serif">धन्यवाद! दोबारा पधारें</p>
-                            </div>
-                            
-                            <div className="mt-16 flex justify-between items-end border-t border-gray-100 pt-12">
+                            {/* Signatures */}
+                            <div className="flex justify-between items-end mt-12 px-2 text-[11px] font-black uppercase tracking-widest text-gray-400">
                                 <div className="text-center group">
-                                    <div className="w-40 h-0.5 bg-gray-200 mb-4 group-hover:bg-indigo-600 transition"></div>
-                                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">कस्टमर के हस्ताक्षर</p>
+                                     <div className="w-32 h-0.5 bg-black mb-2 opacity-20 group-hover:opacity-100"></div>
+                                     <span>साटाधारी का ह०</span>
                                 </div>
                                 <div className="text-center group">
-                                    <div className="w-40 h-0.5 bg-gray-200 mb-4 group-hover:bg-indigo-600 transition"></div>
-                                    <p className="text-[11px] font-black text-indigo-600 uppercase tracking-widest">दिनेश बर्तन भंडार (हस्ताक्षर)</p>
+                                     <div className="w-32 h-0.5 bg-black mb-2 opacity-20 group-hover:opacity-100"></div>
+                                     <span>गवाह का ह०</span>
+                                </div>
+                                <div className="text-center group">
+                                     <div className="w-32 h-0.5 bg-black mb-2 opacity-20 group-hover:opacity-100"></div>
+                                     <span className="text-gray-900">मालिक का ह०</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-8 bg-gray-50 border-t flex gap-4">
-                            <button onClick={handlePrint} className="flex-grow bg-indigo-700 text-white font-black py-5 rounded-[2rem] hover:bg-gray-900 transition flex items-center justify-center gap-3 uppercase text-xs tracking-widest shadow-2xl shadow-indigo-200">
+                        <div className="p-8 bg-gray-50 border-t flex gap-4 no-print">
+                            <button onClick={handlePrint} className="flex-grow bg-gray-900 text-white font-black py-5 rounded-2xl hover:bg-black transition flex items-center justify-center gap-3 uppercase text-xs tracking-widest shadow-xl shadow-gray-200">
                                 <Printer size={20} /> प्रिंट निकालें (Print Receipt)
                             </button>
-                            <button onClick={() => setShowReceipt(false)} className="px-10 border-2 border-gray-200 text-gray-900 font-black py-5 rounded-[2rem] hover:bg-white transition uppercase text-xs tracking-widest">
-                                बंद करें (Close)
+                            <button onClick={() => setShowReceipt(false)} className="px-10 border-2 border-gray-200 text-gray-900 font-black py-5 rounded-2xl hover:bg-white transition uppercase text-xs tracking-widest block md:hidden lg:block">
+                                बंद करें
                             </button>
                         </div>
                     </div>

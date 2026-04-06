@@ -12,6 +12,7 @@ import AdminOverview from './pages/AdminOverview';
 import AdminManualBooking from './pages/AdminManualBooking';
 import AdminUtensils from './pages/AdminUtensils';
 import AdminBookings from './pages/AdminBookings';
+import FeedbackList from './pages/Admin/FeedbackList';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -54,6 +55,7 @@ function App() {
                     <Route path="manual" element={<AdminManualBooking />} />
                     <Route path="utensils" element={<AdminUtensils />} />
                     <Route path="bookings" element={<AdminBookings />} />
+                    <Route path="feedback" element={<FeedbackList />} />
                   </Route>
                 </Routes>
               </div>

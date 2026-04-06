@@ -8,9 +8,10 @@ import authRoutes from './routes/authRoutes.js';
 import utensilRoutes from './routes/utensilRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import feedbackRoutes from './routes/feedbackRoutes.js';
 
 dotenv.config();
-connectDB();
+await connectDB();
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/utensils', utensilRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

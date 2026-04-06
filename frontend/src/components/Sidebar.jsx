@@ -7,7 +7,8 @@ import {
     UserPlus,
     BarChart3,
     Settings,
-    ChevronRight
+    ChevronRight,
+    MessageSquare
 } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
@@ -20,6 +21,7 @@ const Sidebar = () => {
         { to: "/admin/manual", icon: UserPlus, label: "Manual Order", count: "Quick" },
         { to: "/admin/utensils", icon: ShoppingBag, label: "Manage Stock", count: "Live" },
         { to: "/admin/bookings", icon: Calendar, label: "Reservations", count: null },
+        { to: "/admin/feedback", icon: MessageSquare, label: "Feedbacks", count: null },
     ];
 
     return (

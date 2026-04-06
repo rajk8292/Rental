@@ -11,8 +11,8 @@ export const getUtensils = async (req, res) => {
 
 export const createUtensil = async (req, res) => {
     try {
-        const { name, description, pricePerDay, availableQuantity, image } = req.body;
-        const utensil = new Utensil({ name, description, pricePerDay, availableQuantity, image });
+        const { name, description, pricePerDay, availableQuantity, image, category } = req.body;
+        const utensil = new Utensil({ name, description, pricePerDay, availableQuantity, image, category });
         const createdUtensil = await utensil.save();
         res.status(201).json(createdUtensil);
     } catch (error) {
@@ -22,15 +22,16 @@ export const createUtensil = async (req, res) => {
 
 export const updateUtensil = async (req, res) => {
     try {
-        const { name, description, pricePerDay, availableQuantity, image } = req.body;
+        const { name, description, pricePerDay, availableQuantity, image, category } = req.body;
         const utensil = await Utensil.findById(req.params.id);
 
         if (utensil) {
             utensil.name = name || utensil.name;
             utensil.description = description || utensil.description;
-            utensil.pricePerDay = pricePerDay || utensil.pricePerDay;
-            utensil.availableQuantity = availableQuantity || utensil.availableQuantity;
+            utensil.pricePerDay = pricePerDay !== undefined ? pricePerDay : utensil.pricePerDay;
+            utensil.availableQuantity = availableQuantity !== undefined ? availableQuantity : utensil.availableQuantity;
             utensil.image = image || utensil.image;
+            utensil.category = category || utensil.category;
 
             const updatedUtensil = await utensil.save();
             res.json(updatedUtensil);

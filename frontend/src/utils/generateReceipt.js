@@ -32,7 +32,8 @@ export const generateReceipt = (booking) => {
     doc.setFont('helvetica', 'normal');
     doc.text(`Name: ${booking.user?.name || 'Manual Booking'}`, 15, 78);
     doc.text(`Mobile: ${booking.user?.mobile || 'N/A'}`, 15, 84);
-    doc.text(`Village: ${booking.village || 'N/A'}`, 15, 90);
+    doc.text(`Village: ${booking.village || 'N/A'}, Post: ${booking.post || 'N/A'}`, 15, 90);
+    doc.text(`Thana: ${booking.thana || 'N/A'}, Dist: ${booking.district || 'N/A'}`, 15, 96);
 
     doc.setFont('helvetica', 'bold');
     doc.text('BOOKING DETAILS:', 120, 70);
@@ -62,9 +63,14 @@ export const generateReceipt = (booking) => {
     const finalY = doc.lastAutoTable.finalY + 10;
 
     // Totals
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text(`Total Amount: Rs. ${booking.totalPrice}`, 140, finalY + 10);
+    doc.text(`Advance Paid: Rs. ${booking.advance || 0}`, 140, finalY + 16);
+    doc.setFillColor(240, 240, 240);
+    doc.rect(135, finalY + 20, 60, 10, 'F');
+    doc.text(`Balance Due: Rs. ${booking.totalPrice - (booking.advance || 0)}`, 140, finalY + 26);
+
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text(`Payment Status: ${booking.paymentStatus.toUpperCase()}`, 15, finalY + 10);
 

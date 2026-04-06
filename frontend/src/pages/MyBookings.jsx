@@ -5,6 +5,8 @@ import { CreditCard, Calendar, Repeat, Smartphone, QrCode, X, CheckCircle2, File
 import { PAYMENT_CONFIG } from '../constants/payment.js';
 import { QRCodeCanvas } from 'qrcode.react';
 import { generateReceipt } from '../utils/generateReceipt';
+import FeedbackModal from '../components/FeedbackModal';
+import { Star } from 'lucide-react';
 
 const MyBookings = () => {
     const [bookings, setBookings] = useState([]);
@@ -13,6 +15,8 @@ const MyBookings = () => {
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState(null); // 'razorpay' or 'phonepe'
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [feedbackBooking, setFeedbackBooking] = useState(null);
 
     useEffect(() => {
         const fetchBookings = async () => {
@@ -124,6 +128,13 @@ const MyBookings = () => {
                                         <span className="font-bold text-gray-800 flex items-center gap-2"><Calendar size={14} className="text-indigo-400" /> {new Date(booking.endDate).toLocaleDateString()}</span>
                                     </div>
                                 </div>
+                                
+                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-wrap gap-x-6 gap-y-2">
+                                    <div className="flex gap-2"><span>ग्राम:</span> <span className="text-indigo-600">{booking.village}</span></div>
+                                    <div className="flex gap-2"><span>पोस्ट:</span> <span className="text-indigo-600">{booking.post || 'N/A'}</span></div>
+                                    <div className="flex gap-2"><span>थाना:</span> <span className="text-indigo-600">{booking.thana || 'N/A'}</span></div>
+                                    <div className="flex gap-2"><span>जिला:</span> <span className="text-indigo-600">{booking.district}</span></div>
+                                </div>
 
                                 {/* Tracking Timeline */}
                                 {booking.status === 'Approved' && (
@@ -197,9 +208,31 @@ const MyBookings = () => {
                                     <CreditCard size={20} /> PAY NOW
                                 </button>
                             )}
+
+                            {['Delivered', 'Returned', 'Checked'].includes(booking.deliveryStatus) && (
+                                <button
+                                    onClick={() => {
+                                        setFeedbackBooking(booking);
+                                        setShowFeedbackModal(true);
+                                    }}
+                                    className="mt-4 w-full bg-amber-50 text-amber-600 py-3 rounded-2xl font-black text-xs hover:bg-amber-100 transition flex items-center justify-center gap-2 border border-amber-100"
+                                >
+                                    <Star size={16} className="fill-amber-400" /> LEAVE FEEDBACK
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>
+            )}
+
+            {showFeedbackModal && (
+                <FeedbackModal 
+                    booking={feedbackBooking} 
+                    onClose={() => setShowFeedbackModal(false)}
+                    onSuccess={() => {
+                        // Optionally refresh or show a notification
+                    }}
+                />
             )}
 
             {/* Payment Method Modal */}

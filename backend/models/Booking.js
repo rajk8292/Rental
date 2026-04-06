@@ -13,8 +13,11 @@ const bookingSchema = new mongoose.Schema({
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     village: { type: String, default: 'Local' },
+    post: { type: String },
+    thana: { type: String },
     district: { type: String, default: 'Local' },
     totalPrice: { type: Number, required: true },
+    advance: { type: Number, default: 0 },
     status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
     paymentStatus: { type: String, enum: ['Pending', 'Completed', 'Failed'], default: 'Pending' },
     deliveryStatus: { 
