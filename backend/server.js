@@ -28,16 +28,16 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
-// __dirname setup (ES Module fix)
+// __dirname fix for ES Modules
 const __dirname = path.resolve();
 
-// ✅ Production Setup (Frontend serve)
+// ✅ Production (Frontend serve)
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '/frontend/dist')));
+    app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
 
-    // ✅ FIXED LINE (IMPORTANT)
-    app.get('/*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
+    // ✅ FINAL FIX (NO * , NO /*)
+    app.use((req, res) => {
+        res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
     });
 } else {
     app.get('/', (req, res) => {
@@ -45,9 +45,9 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
-// ❌ 404 fallback (optional but best practice)
-app.use((req, res) => {
-    res.status(404).json({ message: "Route not found" });
+// ✅ Optional 404 API handler (best practice)
+app.use('/api', (req, res) => {
+    res.status(404).json({ message: 'API route not found' });
 });
 
 // Server start
